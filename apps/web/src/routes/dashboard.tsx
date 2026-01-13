@@ -166,10 +166,15 @@ export function DashboardPage() {
             {revenueOverTime?.data ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={revenueOverTime.data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="period" />
-                  <YAxis />
-                  <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="period" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }}
+                    itemStyle={{ color: '#0f172a' }}
+                    formatter={(value: any) => [`$${value}`, 'Ingresos']}
+                    labelFormatter={(label) => `Fecha: ${label}`}
+                  />
                   <Legend />
                   <Line
                     type="monotone"
@@ -209,10 +214,14 @@ export function DashboardPage() {
                     label
                   >
                     {paymentMethodData.data.map((_: unknown, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="#ffffff" strokeWidth={2} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }}
+                    itemStyle={{ color: '#0f172a' }}
+                    formatter={(value: any) => [`$${value}`, 'Ingresos']}
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -233,11 +242,16 @@ export function DashboardPage() {
             {locationData?.data ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={locationData.data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(value) => `$${value / 1000}k`} />
-                  <YAxis dataKey="location_group" type="category" width={150} tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
-                  <Bar dataKey="total_revenue" fill="#8b5cf6" name="Ingresos" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" tickFormatter={(value) => `$${value / 1000}k`} stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis dataKey="location_group" type="category" width={150} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }}
+                    itemStyle={{ color: '#0f172a' }}
+                    formatter={(value: any) => [`$${value}`, 'Ingresos']}
+                  />
+                  <Bar dataKey="total_revenue" fill="#8b5cf6" name="Ingresos" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -252,12 +266,17 @@ export function DashboardPage() {
             {sourceData?.data ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={sourceData.data} margin={{ left: 20, right: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="source" />
-                  <YAxis tickFormatter={(value) => `$${value / 1000}k`} width={60} />
-                  <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="source" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis tickFormatter={(value) => `$${value / 1000}k`} width={60} stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }}
+                    itemStyle={{ color: '#0f172a' }}
+                    formatter={(value: any) => [`$${value}`, 'Ingresos']}
+                  />
                   <Legend />
-                  <Bar dataKey="total_revenue" fill="#3b82f6" name="Ingresos" />
+                  <Bar dataKey="total_revenue" fill="#3b82f6" name="Ingresos" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -371,11 +390,11 @@ function SummaryCard({
   }
 
   return (
-    <div className="bg-[#1C1F26] rounded-xl p-6 relative overflow-hidden flex justify-between items-start min-h-[140px]">
+    <div className="bg-white rounded-xl p-6 relative overflow-hidden flex justify-between items-start min-h-[140px] shadow-sm border border-slate-200">
       <div className="relative z-10">
-        <div className="text-3xl font-bold text-white mb-2">{value}</div>
-        <div className="text-gray-400 font-medium mb-1">{title}</div>
-        <div className="text-xs text-gray-500">{subtitle}</div>
+        <div className="text-3xl font-bold text-slate-900 mb-2">{value}</div>
+        <div className="text-slate-500 font-medium mb-1">{title}</div>
+        <div className="text-xs text-slate-400">{subtitle}</div>
       </div>
       <div className={`${bgColors[color]} p-3 rounded-full text-white shadow-lg`}>
         {icons[icon]}
@@ -392,8 +411,8 @@ function ChartCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-[#1C1F26] rounded-xl p-6 h-full border border-gray-800/50">
-      <h3 className="font-semibold text-lg mb-6 text-gray-200">{title}</h3>
+    <div className="bg-white rounded-xl p-6 h-full shadow-sm border border-slate-200">
+      <h3 className="font-semibold text-lg mb-6 text-slate-800">{title}</h3>
       {children}
     </div>
   )
