@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "inlineSources": false,
+    "isolatedModules": true,
+    "module": "NodeNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "moduleDetection": "force",
+    "noUncheckedIndexedAccess": true,
+    "allowImportingTsExtensions": false,
+    "noEmit": false
+  },
+  "exclude": ["node_modules", "dist"]
+}

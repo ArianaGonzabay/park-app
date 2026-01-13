@@ -1,0 +1,14 @@
+{
+  "name": "@park-app/typescript-config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "base.json",
+    "vite.json",
+    "node.json"
+  ],
+  "scripts": {
+    "lint": "echo 'No linting for config package'"
+  }
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"csv-to-parquet.d.ts","sourceRoot":"","sources":["csv-to-parquet.ts"],"names":[],"mappings":"AAiEA,wBAAsB,+BAA+B,CAAC,OAAO,EAAE;IAC7D,YAAY,EAAE,MAAM,CAAA;IACpB,SAAS,EAAE,MAAM,CAAA;IACjB,cAAc,CAAC,EAAE,MAAM,CAAA;CACxB,GAAG,OAAO,CAAC;IAAE,SAAS,EAAE,MAAM,CAAC;IAAC,MAAM,EAAE,MAAM,CAAA;CAAE,CAAC,CAkFjD"}

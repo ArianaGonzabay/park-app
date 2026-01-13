@@ -1,0 +1,25 @@
+{
+  "name": "@park-app/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    "./types": "./src/types/index.ts",
+    "./schemas": "./src/schemas/index.ts",
+    "./csv": "./src/csv/index.ts",
+    "./utils": "./src/utils/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint \"src/**/*.ts\"",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@park-app/eslint-config": "file:../eslint-config",
+    "@park-app/typescript-config": "file:../typescript-config",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  }
+}
