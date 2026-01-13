@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/simple-server.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/simple-server.js",
     "lint": "eslint \"src/**/*.ts\" --max-warnings 0",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "convert:csv:parquet": "tsx src/scripts/convert-csv-to-parquet.ts"
+    "import:csv": "tsx src/scripts/import-csv.ts"
   },
   "dependencies": {
     "@dsnp/parquetjs": "^1.8.7",
