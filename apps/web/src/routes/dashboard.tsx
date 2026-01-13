@@ -4,20 +4,22 @@ import {
   Bar,
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from 'recharts'
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d']
 
 const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1`
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+
 
 export function DashboardPage() {
   const {
@@ -34,15 +36,27 @@ export function DashboardPage() {
     retry: 2,
   })
 
-  const { data: paymentMethodData, isLoading: paymentLoading } = useQuery({
+  const { data: paymentMethodData } = useQuery({
     queryKey: ['analytics', 'payment-method'],
     queryFn: async () => {
       const res = await fetch(`${API_BASE}/analytics/revenue-by-payment-method`)
-      if (!res.ok) throw new Error('Failed to fetch payment data')
+      if (!res.ok) throw new Error('Failed to fetch payment method data')
       return res.json()
     },
     enabled: !!summary,
   })
+
+  const { data: durationData } = useQuery({
+    queryKey: ['analytics', 'duration'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/analytics/duration-analysis`)
+      if (!res.ok) throw new Error('Failed to fetch duration data')
+      return res.json()
+    },
+    enabled: !!summary,
+  })
+
+
 
   const { data: sourceData } = useQuery({
     queryKey: ['analytics', 'source'],
@@ -64,15 +78,7 @@ export function DashboardPage() {
     enabled: !!summary,
   })
 
-  const { data: durationData } = useQuery({
-    queryKey: ['analytics', 'duration'],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE}/analytics/duration-analysis`)
-      if (!res.ok) throw new Error('Failed to fetch duration data')
-      return res.json()
-    },
-    enabled: !!summary,
-  })
+
 
   const { data: hourlyData } = useQuery({
     queryKey: ['analytics', 'hourly'],
@@ -119,241 +125,261 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="max-w-[1600px] mx-auto px-4 py-8 space-y-6">
+      {/* Row 1: Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <SummaryCard
-          title="Ingresos Totales"
-          value={`$${summary?.totalRevenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`}
-          subtitle="Todos los periodos"
+          title="Transacciones Totales"
+          value={summary?.totalTransactions?.toLocaleString() || '0'}
+          subtitle="Registros totales en el sistema"
+          icon="box"
           color="blue"
         />
         <SummaryCard
-          title="Total Transacciones"
-          value={summary?.totalTransactions?.toLocaleString() || '0'}
-          subtitle="Operaciones registradas"
-          color="green"
+          title="Ticket Promedio"
+          value={`$${summary?.avgTransactionAmount?.toFixed(2) || '0.00'}`}
+          subtitle="Promedio por transacción"
+          icon="bag"
+          color="yellow"
         />
         <SummaryCard
-          title="Ingreso Promedio"
-          value={`$${summary?.avgTransactionAmount?.toFixed(2) || '0.00'}`}
-          subtitle="Por transacción"
-          color="yellow"
+          title="Ventas Totales"
+          value={`$${((summary?.totalRevenue || 0) / 1000)?.toFixed(1)}k` || '$0k'}
+          subtitle="Ingresos totales generados"
+          icon="dollar"
+          color="purple"
         />
         <SummaryCard
           title="Duración Promedio"
           value={`${summary?.avgDuration?.toFixed(0) || '0'} min`}
-          subtitle="Tiempo de estacionamiento"
-          color="purple"
+          subtitle="Tiempo promedio de estacionamiento"
+          icon="box-check"
+          color="pink"
         />
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue by Payment Method */}
-        <ChartCard title="Ingresos por Método de Pago">
-          {paymentMethodData?.data ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={paymentMethodData.data}
-                  dataKey="total_revenue"
-                  nameKey="payment_method"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                >
-                  {paymentMethodData.data.map((_: unknown, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : paymentLoading ? (
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
-              Cargando...
-            </div>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-500">
-              Sin datos
-            </div>
-          )}
-        </ChartCard>
+      {/* Row 2: Analysis (Revenue Trend & Payment Method) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Revenue Trend (Line Chart) */}
+        <div className="lg:col-span-2">
+          <ChartCard title="Tendencia de Ingresos (Últimos 30 Días)">
+            {revenueOverTime?.data ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={revenueOverTime.data}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="period" />
+                  <YAxis />
+                  <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="total_revenue"
+                    stroke="#10b981"
+                    name="Ingresos"
+                    strokeWidth={2}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="transaction_count"
+                    stroke="#f59e0b"
+                    name="Transacciones"
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <LoadingPlaceholder />
+            )}
+          </ChartCard>
+        </div>
 
-        {/* Revenue by Source */}
-        <ChartCard title="Ingresos por Fuente">
-          {sourceData?.data ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={sourceData.data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="source" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="total_revenue" fill="#3b82f6" name="Ingresos" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
-              Cargando...
-            </div>
-          )}
-        </ChartCard>
-
-        {/* Revenue Over Time */}
-        <ChartCard title="Tendencia de Ingresos (Últimos 30 Días)" fullWidth>
-          {revenueOverTime?.data ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueOverTime.data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="period" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="total_revenue"
-                  stroke="#10b981"
-                  name="Ingresos"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="transaction_count"
-                  stroke="#f59e0b"
-                  name="Transacciones"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
-              Cargando...
-            </div>
-          )}
-        </ChartCard>
-
-        {/* Top Locations */}
-        <ChartCard title="Top 10 Ubicaciones por Ingresos">
-          {locationData?.data ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={locationData.data} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="location_group" type="category" width={100} />
-                <Tooltip />
-                <Bar dataKey="total_revenue" fill="#8b5cf6" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
-              Cargando...
-            </div>
-          )}
-        </ChartCard>
-
-        {/* Duration Analysis */}
-        <ChartCard title="Distribución de Duración de Estacionamiento">
-          {durationData?.data ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={durationData.data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="duration_range" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="transaction_count" fill="#ec4899" name="Transacciones" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
-              Cargando...
-            </div>
-          )}
-        </ChartCard>
-
-        {/* Hourly Distribution */}
-        <ChartCard title="Distribución Horaria de Transacciones">
-          {hourlyData?.data ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={hourlyData.data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hour" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="transaction_count"
-                  stroke="#3b82f6"
-                  name="Transacciones"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
-              Cargando...
-            </div>
-          )}
-        </ChartCard>
+        {/* Right: Payment Method (Pie Chart) - RESTORED */}
+        <div className="lg:col-span-1">
+          <ChartCard title="Métodos de Pago">
+            {paymentMethodData?.data ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={paymentMethodData.data}
+                    dataKey="total_revenue"
+                    nameKey="payment_method"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label
+                  >
+                    {paymentMethodData.data.map((_: unknown, index: number) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-400">
+                Cargando...
+              </div>
+            )}
+          </ChartCard>
+        </div>
       </div>
 
-      {/* Data Info */}
-      <div className="mt-8 bg-[#0a0f0d] border border-gray-800 rounded-lg shadow-xl p-6">
-        <h3 className="font-display font-semibold text-lg mb-2 text-white">
-          Información del Dataset
-        </h3>
-        <div className="text-sm text-gray-400 space-y-1">
-          <p>
-            <strong className="text-gray-300">Período:</strong> {summary?.dateRange?.start} -{' '}
-            {summary?.dateRange?.end}
-          </p>
-          <p>
-            <strong className="text-gray-300">Fuente:</strong> Parking_Transactions.csv
-          </p>
-          <p>
-            <strong className="text-gray-300">Tamaño:</strong>{' '}
-            {summary?.totalTransactions?.toLocaleString()} registros
-          </p>
-          <p>
-            <strong className="text-gray-300">Ingresos Totales:</strong> $
-            {summary?.totalRevenue?.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </p>
+      {/* Row 3: Operational (Top Locations & Source) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Top Locations (Vertical Bar Chart) - RESTORED */}
+        <div className="lg:col-span-2">
+          <ChartCard title="Top 10 Ubicaciones por Ingresos">
+            {locationData?.data ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={locationData.data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" tickFormatter={(value) => `$${value / 1000}k`} />
+                  <YAxis dataKey="location_group" type="category" width={150} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
+                  <Bar dataKey="total_revenue" fill="#8b5cf6" name="Ingresos" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <LoadingPlaceholder />
+            )}
+          </ChartCard>
         </div>
+
+        {/* Right: Revenue by Source (Bar Chart) - RESTORED POSITION */}
+        <div className="lg:col-span-1">
+          <ChartCard title="Ingresos por Fuente">
+            {sourceData?.data ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={sourceData.data} margin={{ left: 20, right: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="source" />
+                  <YAxis tickFormatter={(value) => `$${value / 1000}k`} width={60} />
+                  <Tooltip formatter={(value: any) => [`$${value}`, 'Ingresos']} />
+                  <Legend />
+                  <Bar dataKey="total_revenue" fill="#3b82f6" name="Ingresos" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <LoadingPlaceholder />
+            )}
+          </ChartCard>
+        </div>
+      </div>
+
+      {/* Row 4: Details (Hourly & Duration) - RESTORED */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Hourly Distribution (Line Chart) */}
+        <div className="lg:col-span-2">
+          <ChartCard title="Distribución Horaria">
+            {hourlyData?.data ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={hourlyData.data}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="hour" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="transaction_count"
+                    stroke="#3b82f6"
+                    name="Transacciones"
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <LoadingPlaceholder />
+            )}
+          </ChartCard>
+        </div>
+
+        {/* Right: Duration Analysis (Bar Chart) */}
+        <div className="lg:col-span-1">
+          <ChartCard title="Duración Estacionamiento">
+            {durationData?.data ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={durationData.data}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="duration_range" hide /> {/* Hide text if too long */}
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="transaction_count" fill="#ec4899" name="Transacciones" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-400">
+                Cargando...
+              </div>
+            )}
+          </ChartCard>
+        </div>
+
       </div>
     </div>
   )
+}
+
+function LoadingPlaceholder() {
+  return <div className="h-[200px] flex items-center justify-center text-gray-500">Loading...</div>
 }
 
 function SummaryCard({
   title,
   value,
   subtitle,
+  icon,
   color,
 }: {
   title: string
   value: string
   subtitle: string
-  color: 'blue' | 'green' | 'yellow' | 'purple'
+  icon: 'box' | 'bag' | 'dollar' | 'box-check'
+  color: 'blue' | 'yellow' | 'purple' | 'pink'
 }) {
-  const colorClasses = {
-    blue: 'bg-blue-900/20 border-blue-700/50 text-blue-300',
-    green: 'bg-green-900/20 border-green-700/50 text-green-300',
-    yellow: 'bg-yellow-900/20 border-yellow-700/50 text-yellow-300',
-    purple: 'bg-purple-900/20 border-purple-700/50 text-purple-300',
+  const icons = {
+    box: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+    ),
+    bag: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+    ),
+    dollar: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 01 18 0z" />
+      </svg>
+    ),
+    'box-check': (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    )
+
+  }
+
+  const bgColors = {
+    blue: 'bg-blue-500',
+    yellow: 'bg-yellow-500',
+    purple: 'bg-purple-500',
+    pink: 'bg-pink-500'
   }
 
   return (
-    <div className={`${colorClasses[color]} border rounded-lg p-6 backdrop-blur-sm`}>
-      <h3 className="text-sm font-medium text-gray-400 mb-2">{title}</h3>
-      <div className="text-3xl font-display font-bold mb-1">{value}</div>
-      <p className="text-xs text-gray-500">{subtitle}</p>
+    <div className="bg-[#1C1F26] rounded-xl p-6 relative overflow-hidden flex justify-between items-start min-h-[140px]">
+      <div className="relative z-10">
+        <div className="text-3xl font-bold text-white mb-2">{value}</div>
+        <div className="text-gray-400 font-medium mb-1">{title}</div>
+        <div className="text-xs text-gray-500">{subtitle}</div>
+      </div>
+      <div className={`${bgColors[color]} p-3 rounded-full text-white shadow-lg`}>
+        {icons[icon]}
+      </div>
     </div>
   )
 }
@@ -361,17 +387,13 @@ function SummaryCard({
 function ChartCard({
   title,
   children,
-  fullWidth = false,
 }: {
   title: string
   children: React.ReactNode
-  fullWidth?: boolean
 }) {
   return (
-    <div
-      className={`bg-[#0a0f0d] border border-gray-800 rounded-lg shadow-xl p-6 ${fullWidth ? 'lg:col-span-2' : ''}`}
-    >
-      <h3 className="font-display font-semibold text-lg mb-4 text-white">{title}</h3>
+    <div className="bg-[#1C1F26] rounded-xl p-6 h-full border border-gray-800/50">
+      <h3 className="font-semibold text-lg mb-6 text-gray-200">{title}</h3>
       {children}
     </div>
   )

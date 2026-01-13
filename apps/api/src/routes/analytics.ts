@@ -1,198 +1,258 @@
 import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
-import { bodyLimit } from 'hono/body-limit'
-import { stream } from 'hono/streaming'
-import { HTTPException } from 'hono/http-exception'
-import {
-  RevenueAnalyticsQuerySchema,
-  TransactionListQuerySchema,
-  type CsvProcessingProgress,
-  type CsvProcessingResult,
-} from '@park-app/shared/csv'
-import { CsvTransactionRowRawSchema, TransactionRecordSchema } from '@park-app/shared/csv'
+import { db } from '../db/client.js'
 
 const analytics = new Hono()
 
-analytics.post(
-  '/upload',
-  bodyLimit({
-    maxSize: 5 * 1024 * 1024 * 1024,
-    onError: (c) => {
-      return c.json({ error: 'File too large. Maximum size is 5GB' }, 413)
+// Dashboard Summary - Indicadores principales
+analytics.get('/summary', (c) => {
+  const summary = db
+    .prepare(
+      `
+    SELECT 
+      COUNT(*) as total_transactions,
+      SUM(amount) as total_revenue,
+      AVG(amount) as avg_transaction_amount,
+      AVG(duration_minutes) as avg_duration,
+      MIN(start_time) as earliest_date,
+      MAX(start_time) as latest_date
+    FROM transactions
+  `
+    )
+    .get() as {
+    total_transactions: number
+    total_revenue: number
+    avg_transaction_amount: number
+    avg_duration: number
+    earliest_date: string
+    latest_date: string
+  }
+
+  return c.json({
+    totalTransactions: summary.total_transactions,
+    totalRevenue: summary.total_revenue,
+    avgTransactionAmount: summary.avg_transaction_amount,
+    avgDuration: summary.avg_duration,
+    dateRange: {
+      start: summary.earliest_date,
+      end: summary.latest_date,
     },
-  }),
-  async (c) => {
-    const contentType = c.req.header('Content-Type')
-
-    if (!contentType?.includes('multipart/form-data')) {
-      throw new HTTPException(400, {
-        message: 'Content-Type must be multipart/form-data',
-      })
-    }
-
-    return stream(c, async (stream) => {
-      stream.onAbort(() => {
-        console.log('Upload aborted by client')
-      })
-
-      try {
-        const result = await processCsvUpload(c.req.raw, (progress) => {
-          console.log(`Upload progress: ${progress.percentage.toFixed(2)}%`)
-        })
-
-        await stream.write(JSON.stringify(result))
-      } catch (error) {
-        console.error('CSV processing error:', error)
-        throw new HTTPException(500, {
-          message: 'Failed to process CSV file',
-        })
-      }
-    })
-  }
-)
-
-analytics.get('/revenue', zValidator('query', RevenueAnalyticsQuerySchema), (c) => {
-  c.req.valid('query')
-  return c.json({
-    period: 'revenue placeholder',
-    totalRevenue: 0,
-    totalTransactions: 0,
-    byPaymentMethod: {},
   })
 })
 
-analytics.get('/transactions', zValidator('query', TransactionListQuerySchema), (c) => {
-  c.req.valid('query')
+// Revenue by Payment Method
+analytics.get('/revenue-by-payment-method', (c) => {
+  const data = db
+    .prepare(
+      `
+    SELECT 
+      payment_method,
+      COUNT(*) as transaction_count,
+      SUM(amount) as total_revenue,
+      AVG(amount) as avg_amount
+    FROM transactions
+    WHERE payment_method IS NOT NULL AND payment_method != ''
+    GROUP BY payment_method
+    ORDER BY total_revenue DESC
+  `
+    )
+    .all() as Array<{
+    payment_method: string
+    transaction_count: number
+    total_revenue: number
+    avg_amount: number
+  }>
+
+  return c.json({ data })
+})
+
+// Revenue by Location
+analytics.get('/revenue-by-location', (c) => {
+  const limit = parseInt(c.req.query('limit') || '10')
+
+  const data = db
+    .prepare(
+      `
+    SELECT 
+      location_group,
+      COUNT(*) as transaction_count,
+      SUM(amount) as total_revenue,
+      AVG(amount) as avg_amount,
+      AVG(duration_minutes) as avg_duration
+    FROM transactions
+    WHERE location_group IS NOT NULL AND location_group != ''
+    GROUP BY location_group
+    ORDER BY total_revenue DESC
+    LIMIT ?
+  `
+    )
+    .all(limit) as Array<{
+    location_group: string
+    transaction_count: number
+    total_revenue: number
+    avg_amount: number
+    avg_duration: number
+  }>
+
+  return c.json({ data })
+})
+
+// Revenue by Source (Parking Meters vs App)
+analytics.get('/revenue-by-source', (c) => {
+  const data = db
+    .prepare(
+      `
+    SELECT 
+      source,
+      COUNT(*) as transaction_count,
+      SUM(amount) as total_revenue,
+      AVG(amount) as avg_amount
+    FROM transactions
+    GROUP BY source
+    ORDER BY total_revenue DESC
+  `
+    )
+    .all() as Array<{
+    source: string
+    transaction_count: number
+    total_revenue: number
+    avg_amount: number
+  }>
+
+  return c.json({ data })
+})
+
+// Revenue over time (daily)
+analytics.get('/revenue-over-time', (c) => {
+  const period = c.req.query('period') || 'daily' // daily, weekly, monthly
+
+  let groupByFormat = '%Y-%m-%d' // daily
+  if (period === 'weekly') {
+    groupByFormat = '%Y-%W'
+  } else if (period === 'monthly') {
+    groupByFormat = '%Y-%m'
+  }
+
+  const limit = parseInt(c.req.query('limit') || '30')
+
+  const data = db
+    .prepare(
+      `
+    SELECT 
+      strftime(?, start_time) as period,
+      COUNT(*) as transaction_count,
+      SUM(amount) as total_revenue,
+      AVG(amount) as avg_amount
+    FROM transactions
+    GROUP BY period
+    ORDER BY period DESC
+    LIMIT ?
+  `
+    )
+    .all(groupByFormat, limit) as Array<{
+    period: string
+    transaction_count: number
+    total_revenue: number
+    avg_amount: number
+  }>
+
   return c.json({
-    transactions: [],
-    nextCursor: null,
+    period,
+    data: data.reverse(), // Reverse to show chronological order
   })
 })
 
-async function processCsvUpload(
-  request: Request,
-  _onProgress?: (progress: CsvProcessingProgress) => void
-): Promise<CsvProcessingResult> {
-  const startTime = Date.now()
-  let recordsProcessed = 0
-  let recordsFailed = 0
+// Duration Analysis
+analytics.get('/duration-analysis', (c) => {
+  const ranges = db
+    .prepare(
+      `
+    SELECT 
+      CASE 
+        WHEN duration_minutes < 30 THEN '0-30 min'
+        WHEN duration_minutes < 60 THEN '30-60 min'
+        WHEN duration_minutes < 120 THEN '1-2 hours'
+        WHEN duration_minutes < 240 THEN '2-4 hours'
+        WHEN duration_minutes < 480 THEN '4-8 hours'
+        ELSE '8+ hours'
+      END as duration_range,
+      COUNT(*) as transaction_count,
+      SUM(amount) as total_revenue,
+      AVG(amount) as avg_amount
+    FROM transactions
+    GROUP BY duration_range
+    ORDER BY 
+      CASE duration_range
+        WHEN '0-30 min' THEN 1
+        WHEN '30-60 min' THEN 2
+        WHEN '1-2 hours' THEN 3
+        WHEN '2-4 hours' THEN 4
+        WHEN '4-8 hours' THEN 5
+        ELSE 6
+      END
+  `
+    )
+    .all() as Array<{
+    duration_range: string
+    transaction_count: number
+    total_revenue: number
+    avg_amount: number
+  }>
 
-  try {
-    const contentLength = request.headers.get('Content-Length')
-    const totalBytes = contentLength ? parseInt(contentLength, 10) : 0
+  return c.json({ data: ranges })
+})
 
-    const reader = request.body?.getReader()
-    if (!reader) {
-      throw new Error('No request body')
-    }
+// Hourly Distribution (peak hours)
+analytics.get('/hourly-distribution', (c) => {
+  const data = db
+    .prepare(
+      `
+    SELECT 
+      CAST(strftime('%H', start_time) as INTEGER) as hour,
+      COUNT(*) as transaction_count,
+      SUM(amount) as total_revenue,
+      AVG(duration_minutes) as avg_duration
+    FROM transactions
+    GROUP BY hour
+    ORDER BY hour
+  `
+    )
+    .all() as Array<{
+    hour: number
+    transaction_count: number
+    total_revenue: number
+    avg_duration: number
+  }>
 
-    const decoder = new TextDecoder()
-    let buffer = ''
-    let bytesRead = 0
+  return c.json({ data })
+})
 
-    let headerSkipped = false
+// Top Kiosks
+analytics.get('/top-kiosks', (c) => {
+  const limit = parseInt(c.req.query('limit') || '20')
 
-    while (true) {
-      const { done, value } = await reader.read()
+  const data = db
+    .prepare(
+      `
+    SELECT 
+      kiosk_id,
+      COUNT(*) as transaction_count,
+      SUM(amount) as total_revenue,
+      AVG(amount) as avg_amount
+    FROM transactions
+    WHERE kiosk_id IS NOT NULL AND kiosk_id != ''
+    GROUP BY kiosk_id
+    ORDER BY total_revenue DESC
+    LIMIT ?
+  `
+    )
+    .all(limit) as Array<{
+    kiosk_id: string
+    transaction_count: number
+    total_revenue: number
+    avg_amount: number
+  }>
 
-      if (done) break
-
-      bytesRead += value.length
-      buffer += decoder.decode(value, { stream: true })
-
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-
-      for (const line of lines) {
-        if (!line.trim()) continue
-
-        if (!headerSkipped) {
-          headerSkipped = true
-          continue
-        }
-
-        try {
-          const record = parseCsvLine(line)
-          const validated = CsvTransactionRowRawSchema.parse(record)
-          const _normalized = TransactionRecordSchema.parse(validated)
-
-          recordsProcessed++
-
-          if (recordsProcessed % 1000 === 0 && _onProgress) {
-            _onProgress({
-              bytesRead,
-              totalBytes,
-              percentage: totalBytes > 0 ? (bytesRead / totalBytes) * 100 : 0,
-              recordsProcessed,
-              recordsFailed,
-            })
-          }
-        } catch {
-          recordsFailed++
-        }
-      }
-    }
-
-    return {
-      recordsProcessed,
-      recordsFailed,
-      durationMs: Date.now() - startTime,
-    }
-  } catch {
-    throw new Error('Failed to process CSV file')
-  }
-}
-
-function parseCsvLine(line: string): Record<string, string> {
-  const values = splitCsvLine(line)
-
-  const columns = [
-    'ID',
-    'Source',
-    'Duration in Minutes',
-    'Start Time',
-    'End Time',
-    'Amount',
-    'Kiosk ID',
-    'App Zone ID',
-    'App Zone Group',
-    'Payment Method',
-    'Location Group',
-    'Last Updated',
-  ]
-
-  const record: Record<string, string> = {}
-
-  for (let i = 0; i < columns.length; i++) {
-    const key = columns[i]
-    if (key) {
-      record[key] = values[i] || ''
-    }
-  }
-
-  return record
-}
-
-function splitCsvLine(line: string): string[] {
-  const result: string[] = []
-  let current = ''
-  let inQuotes = false
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-
-    if (char === '"') {
-      inQuotes = !inQuotes
-    } else if (char === ',' && !inQuotes) {
-      result.push(current)
-      current = ''
-    } else {
-      current += char
-    }
-  }
-
-  result.push(current)
-  return result
-}
+  return c.json({ data })
+})
 
 export default analytics
