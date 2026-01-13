@@ -28,7 +28,7 @@
     },
     "test": {
       "dependsOn": ["build"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**", "playwright-report/**", "test-results/**"]
     },
     "clean": {
       "cache": false

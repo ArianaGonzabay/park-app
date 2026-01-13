@@ -89,20 +89,20 @@ export function PartnerTariffsPage() {
               />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-            <input
-              type="time"
-              placeholder="Peak start"
-              value={peakStart}
-              onChange={(event) => setPeakStart(event.target.value)}
-              className="rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100"
-            />
-            <input
-              type="time"
-              placeholder="Peak end"
-              value={peakEnd}
-              onChange={(event) => setPeakEnd(event.target.value)}
-              className="rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100"
-            />
+              <input
+                type="time"
+                placeholder="Peak start"
+                value={peakStart}
+                onChange={(event) => setPeakStart(event.target.value)}
+                className="rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100"
+              />
+              <input
+                type="time"
+                placeholder="Peak end"
+                value={peakEnd}
+                onChange={(event) => setPeakEnd(event.target.value)}
+                className="rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100"
+              />
             </div>
             <button
               type="submit"

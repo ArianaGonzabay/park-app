@@ -29,10 +29,11 @@ type NotificationsResponse = {
 }
 
 export function ProfilePage() {
-  const { data: profile, isLoading, error } = useApiQuery<ProfileResponse>(
-    'profile',
-    API_ENDPOINTS.profile
-  )
+  const {
+    data: profile,
+    isLoading,
+    error,
+  } = useApiQuery<ProfileResponse>('profile', API_ENDPOINTS.profile)
   const {
     data: vehiclesData,
     isLoading: vehiclesLoading,

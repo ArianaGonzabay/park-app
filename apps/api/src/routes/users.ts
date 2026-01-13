@@ -1,28 +1,20 @@
 import crypto from 'node:crypto'
 
 import { Hono } from 'hono'
-import { HTTPException } from 'hono/http-exception'
 import { zValidator } from '@hono/zod-validator'
 
 import type { Variables } from '../types/env.js'
 import { CreateVehicleSchema, UpdateUserSchema } from '@park-app/shared/schemas'
 import { authMiddleware } from '../middleware/auth.js'
+import { requireUserId } from '../utils/auth.js'
 import { db } from '../db/client.js'
 
 const users = new Hono<{ Variables: Variables }>()
 
-const getUserId = (c: { get: (key: 'userId') => string | undefined }): string => {
-  const userId: string | undefined = c.get('userId')
-  if (!userId) {
-    throw new HTTPException(401, { message: 'Unauthorized' })
-  }
-  return userId
-}
-
 users.use('*', authMiddleware)
 
 users.get('/me', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const row = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as {
     id: string
     email: string
@@ -43,7 +35,7 @@ users.get('/me', (c) => {
 })
 
 users.patch('/me', zValidator('json', UpdateUserSchema), (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const data = c.req.valid('json')
 
   db.prepare('UPDATE users SET name = ?, phone_number = ? WHERE id = ?').run(
@@ -72,7 +64,7 @@ users.patch('/me', zValidator('json', UpdateUserSchema), (c) => {
 })
 
 users.get('/me/vehicles', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const vehicles = db
     .prepare('SELECT * FROM vehicles WHERE user_id = ? ORDER BY plate ASC')
     .all(userId) as Array<{
@@ -96,7 +88,7 @@ users.get('/me/vehicles', (c) => {
 })
 
 users.post('/me/vehicles', zValidator('json', CreateVehicleSchema), (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const data = c.req.valid('json')
 
   const id = crypto.randomUUID()
@@ -117,7 +109,7 @@ users.post('/me/vehicles', zValidator('json', CreateVehicleSchema), (c) => {
 })
 
 users.delete('/me/vehicles/:id', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const vehicleId = c.req.param('id')
 
   const deleted = db

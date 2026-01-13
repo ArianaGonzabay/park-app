@@ -69,9 +69,7 @@ export function ReservationsPage() {
               </div>
               <div className="text-right text-xs text-slate-300">
                 <p className="uppercase">{reservation.status}</p>
-                <p className="text-base text-slate-100">
-                  ${reservation.totalAmount.toFixed(2)}
-                </p>
+                <p className="text-base text-slate-100">${reservation.totalAmount.toFixed(2)}</p>
                 <button
                   type="button"
                   onClick={() => handleCancel(reservation.id)}

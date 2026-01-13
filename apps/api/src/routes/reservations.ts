@@ -1,23 +1,15 @@
 import crypto from 'node:crypto'
 
 import { Hono } from 'hono'
-import { HTTPException } from 'hono/http-exception'
 import { zValidator } from '@hono/zod-validator'
 
 import type { Variables } from '../types/env.js'
 import { authMiddleware } from '../middleware/auth.js'
+import { requireUserId } from '../utils/auth.js'
 import { CreateReservationSchema } from '@park-app/shared/schemas'
 import { db } from '../db/client.js'
 
 const reservations = new Hono<{ Variables: Variables }>()
-
-const getUserId = (c: { get: (key: 'userId') => string | undefined }): string => {
-  const userId: string | undefined = c.get('userId')
-  if (!userId) {
-    throw new HTTPException(401, { message: 'Unauthorized' })
-  }
-  return userId
-}
 
 const createNotification = (userId: string, type: string, message: string) => {
   db.prepare(
@@ -28,11 +20,9 @@ const createNotification = (userId: string, type: string, message: string) => {
 reservations.use('*', authMiddleware)
 
 reservations.get('/', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const rows = db
-    .prepare(
-      'SELECT * FROM reservations WHERE user_id = ? ORDER BY datetime(created_at) DESC'
-    )
+    .prepare('SELECT * FROM reservations WHERE user_id = ? ORDER BY datetime(created_at) DESC')
     .all(userId) as Array<{
     id: string
     parking_id: string
@@ -63,7 +53,7 @@ reservations.get('/', (c) => {
 })
 
 reservations.get('/:id', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const id = c.req.param('id')
 
   const row = db
@@ -104,12 +94,10 @@ reservations.get('/:id', (c) => {
 })
 
 reservations.post('/', zValidator('json', CreateReservationSchema), (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const data = c.req.valid('json')
 
-  const parking = db
-    .prepare('SELECT * FROM parking_locations WHERE id = ?')
-    .get(data.parkingId) as
+  const parking = db.prepare('SELECT * FROM parking_locations WHERE id = ?').get(data.parkingId) as
     | {
         id: string
         hourly_rate: number
@@ -174,7 +162,7 @@ reservations.post('/', zValidator('json', CreateReservationSchema), (c) => {
 })
 
 reservations.post('/:id/cancel', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const id = c.req.param('id')
 
   const row = db

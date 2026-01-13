@@ -75,7 +75,7 @@ export const apiFetch = async (endpoint: string, options?: RequestInit) => {
 
 export const useApiQuery = <T,>(queryKey: string, endpoint: string): ApiState<T> => {
   const query = useQuery({
-    queryKey: [queryKey],
+    queryKey: [queryKey, endpoint],
     queryFn: async () => {
       const response = await apiFetch(endpoint)
       if (!response.ok) {

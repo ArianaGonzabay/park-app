@@ -1,7 +1,6 @@
 import crypto from 'node:crypto'
 
 import { Hono } from 'hono'
-import { HTTPException } from 'hono/http-exception'
 import { zValidator } from '@hono/zod-validator'
 
 import type { Variables } from '../types/env.js'
@@ -13,17 +12,11 @@ import {
   UpdateParkingLocationSchema,
 } from '@park-app/shared/schemas'
 import { authMiddleware } from '../middleware/auth.js'
-import { db, jsonParse } from '../db/client.js'
+import { requireUserId } from '../utils/auth.js'
+import { db } from '../db/client.js'
+import { toParkingDto, type ParkingRow } from '../db/parking.js'
 
 const partners = new Hono<{ Variables: Variables }>()
-
-const getUserId = (c: { get: (key: 'userId') => string | undefined }): string => {
-  const userId: string | undefined = c.get('userId')
-  if (!userId) {
-    throw new HTTPException(401, { message: 'Unauthorized' })
-  }
-  return userId
-}
 
 const requirePartner = (userId: string) => {
   const user = db.prepare('SELECT role FROM users WHERE id = ?').get(userId) as
@@ -38,7 +31,7 @@ const requirePartner = (userId: string) => {
 partners.use('*', authMiddleware)
 
 partners.post('/onboard', zValidator('json', PartnerOnboardSchema), (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   const data = c.req.valid('json')
 
   db.prepare('UPDATE users SET role = ? WHERE id = ?').run('partner', userId)
@@ -50,55 +43,20 @@ partners.post('/onboard', zValidator('json', PartnerOnboardSchema), (c) => {
 })
 
 partners.get('/parking', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
 
   const rows = db
     .prepare('SELECT * FROM parking_locations WHERE partner_id = ? ORDER BY name ASC')
-    .all(userId) as Array<{
-    id: string
-    name: string
-    address: string
-    lat: number
-    lng: number
-    total_spots: number
-    available_spots: number
-    hourly_rate: number
-    type: string
-    amenities: string
-    images: string
-    operating_hours: string
-    rating: number
-    review_count: number
-    created_at: string
-  }>
+    .all(userId) as ParkingRow[]
 
   return c.json({
-    parking: rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      address: row.address,
-      location: { lat: row.lat, lng: row.lng },
-      totalSpots: row.total_spots,
-      availableSpots: row.available_spots,
-      hourlyRate: row.hourly_rate,
-      type: row.type,
-      amenities: jsonParse<string[]>(row.amenities, []),
-      images: jsonParse<string[]>(row.images, []),
-      operatingHours: jsonParse(row.operating_hours, {
-        opensAt: '07:00',
-        closesAt: '22:00',
-        days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-      }),
-      rating: row.rating,
-      reviewCount: row.review_count,
-      createdAt: row.created_at,
-    })),
+    parking: rows.map(toParkingDto),
   })
 })
 
 partners.post('/parking', zValidator('json', CreateParkingLocationSchema), (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
 
   const data = c.req.valid('json')
@@ -133,7 +91,7 @@ partners.post('/parking', zValidator('json', CreateParkingLocationSchema), (c) =
 })
 
 partners.patch('/parking/:id', zValidator('json', UpdateParkingLocationSchema), (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
 
   const parkingId = c.req.param('id')
@@ -183,26 +141,30 @@ partners.patch('/parking/:id', zValidator('json', UpdateParkingLocationSchema), 
   return c.json({ ok: true })
 })
 
-partners.patch('/parking/:id/availability', zValidator('json', UpdateParkingAvailabilitySchema), (c) => {
-  const userId = getUserId(c)
-  if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
+partners.patch(
+  '/parking/:id/availability',
+  zValidator('json', UpdateParkingAvailabilitySchema),
+  (c) => {
+    const userId = requireUserId(c)
+    if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
 
-  const parkingId = c.req.param('id')
-  const data = c.req.valid('json')
+    const parkingId = c.req.param('id')
+    const data = c.req.valid('json')
 
-  const updated = db
-    .prepare('UPDATE parking_locations SET available_spots = ? WHERE id = ? AND partner_id = ?')
-    .run(data.availableSpots, parkingId, userId)
+    const updated = db
+      .prepare('UPDATE parking_locations SET available_spots = ? WHERE id = ? AND partner_id = ?')
+      .run(data.availableSpots, parkingId, userId)
 
-  if (updated.changes === 0) {
-    return c.json({ error: 'Parking location not found' }, 404)
+    if (updated.changes === 0) {
+      return c.json({ error: 'Parking location not found' }, 404)
+    }
+
+    return c.json({ ok: true })
   }
-
-  return c.json({ ok: true })
-})
+)
 
 partners.get('/reservations', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
 
   const rows = db
@@ -245,7 +207,7 @@ partners.get('/reservations', (c) => {
 })
 
 partners.post('/reservations/:id/checkin', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
 
   const id = c.req.param('id')
@@ -266,7 +228,7 @@ partners.post('/reservations/:id/checkin', (c) => {
 })
 
 partners.get('/tariffs/:parkingId', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
 
   const parkingId = c.req.param('parkingId')
@@ -302,7 +264,7 @@ partners.get('/tariffs/:parkingId', (c) => {
 })
 
 partners.put('/tariffs/:parkingId', zValidator('json', TariffSchema), (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
 
   const parkingId = c.req.param('parkingId')
@@ -330,7 +292,7 @@ partners.put('/tariffs/:parkingId', zValidator('json', TariffSchema), (c) => {
 })
 
 partners.get('/kpis', (c) => {
-  const userId = getUserId(c)
+  const userId = requireUserId(c)
   if (!requirePartner(userId)) return c.json({ error: 'Partner access required' }, 403)
 
   const totals = db

@@ -72,9 +72,9 @@ favorites.post('/:parkingId', (c) => {
   const userId = getUserId(c)
   const parkingId = c.req.param('parkingId')
 
-  const exists = db
-    .prepare('SELECT id FROM parking_locations WHERE id = ?')
-    .get(parkingId) as { id: string } | undefined
+  const exists = db.prepare('SELECT id FROM parking_locations WHERE id = ?').get(parkingId) as
+    | { id: string }
+    | undefined
 
   if (!exists) {
     return c.json({ error: 'Parking location not found' }, 404)

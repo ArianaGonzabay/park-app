@@ -104,8 +104,14 @@ export const PartnerOnboardSchema = z.object({
 export const TariffSchema = z.object({
   baseRate: z.number().positive(),
   peakRate: z.number().positive().optional(),
-  peakStart: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  peakEnd: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  peakStart: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .optional(),
+  peakEnd: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .optional(),
 })
 
 export const ParkingFilterSchema = z.object({

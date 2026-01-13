@@ -3,7 +3,8 @@ import { zValidator } from '@hono/zod-validator'
 
 import { optionalAuthMiddleware } from '../middleware/auth.js'
 import { ParkingFilterSchema } from '@park-app/shared/schemas'
-import { db, jsonParse } from '../db/client.js'
+import { db } from '../db/client.js'
+import { toParkingDto, type ParkingRow } from '../db/parking.js'
 
 const parking = new Hono()
 
@@ -25,45 +26,9 @@ const distanceMeters = (a: { lat: number; lng: number }, b: { lat: number; lng: 
 parking.get('/', optionalAuthMiddleware, zValidator('query', ParkingFilterSchema), (c) => {
   const filters = c.req.valid('query')
 
-  const rows = db.prepare('SELECT * FROM parking_locations').all() as Array<{
-    id: string
-    partner_id: string | null
-    name: string
-    address: string
-    lat: number
-    lng: number
-    total_spots: number
-    available_spots: number
-    hourly_rate: number
-    type: string
-    amenities: string
-    images: string
-    operating_hours: string
-    rating: number
-    review_count: number
-    created_at: string
-  }>
+  const rows = db.prepare('SELECT * FROM parking_locations').all() as ParkingRow[]
 
-  let parkingSpots = rows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    address: row.address,
-    location: { lat: row.lat, lng: row.lng },
-    totalSpots: row.total_spots,
-    availableSpots: row.available_spots,
-    hourlyRate: row.hourly_rate,
-    type: row.type,
-    amenities: jsonParse<string[]>(row.amenities, []),
-    images: jsonParse<string[]>(row.images, []),
-    operatingHours: jsonParse(row.operating_hours, {
-      opensAt: '07:00',
-      closesAt: '22:00',
-      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    }),
-    rating: row.rating,
-    reviewCount: row.review_count,
-    createdAt: row.created_at,
-  }))
+  let parkingSpots = rows.map(toParkingDto)
 
   if (filters.type) {
     parkingSpots = parkingSpots.filter((spot) => spot.type === filters.type)
@@ -103,51 +68,14 @@ parking.get('/:id', optionalAuthMiddleware, (c) => {
   const id = c.req.param('id')
 
   const row = db.prepare('SELECT * FROM parking_locations WHERE id = ?').get(id) as
-    | {
-        id: string
-        name: string
-        address: string
-        lat: number
-        lng: number
-        total_spots: number
-        available_spots: number
-        hourly_rate: number
-        type: string
-        amenities: string
-        images: string
-        operating_hours: string
-        rating: number
-        review_count: number
-        created_at: string
-      }
+    | ParkingRow
     | undefined
 
   if (!row) {
     return c.json({ error: 'Parking location not found' }, 404)
   }
 
-  return c.json({
-    parking: {
-      id: row.id,
-      name: row.name,
-      address: row.address,
-      location: { lat: row.lat, lng: row.lng },
-      totalSpots: row.total_spots,
-      availableSpots: row.available_spots,
-      hourlyRate: row.hourly_rate,
-      type: row.type,
-      amenities: jsonParse<string[]>(row.amenities, []),
-      images: jsonParse<string[]>(row.images, []),
-      operatingHours: jsonParse(row.operating_hours, {
-        opensAt: '07:00',
-        closesAt: '22:00',
-        days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-      }),
-      rating: row.rating,
-      reviewCount: row.review_count,
-      createdAt: row.created_at,
-    },
-  })
+  return c.json({ parking: toParkingDto(row) })
 })
 
 export default parking

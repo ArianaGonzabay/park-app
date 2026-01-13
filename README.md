@@ -43,3 +43,62 @@ park-app/
 - **Backend**: Hono + Node.js
 - **Shared**: TypeScript + Zod validation
 - **Build**: Turborepo + npm workspaces
+
+## Workflows (ASCII)
+
+Driver flow
+```
+[Open App]
+    |
+    v
+[Sign up / Login]
+    |
+    v
+[Map Search] -> [Parking Detail]
+    |
+    v
+[Reserve (date/time/vehicle)]
+    |
+    v
+[Payment (mock checkout)]
+    |
+    v
+[Confirmation (QR code)]
+    |
+    v
+[Reservations] -> [Optional Cancel]
+```
+
+Partner flow
+```
+[Sign up / Login]
+    |
+    v
+[Partner Onboard]
+    |
+    v
+[Add Parking Location]
+    |
+    v
+[Update Availability]
+    |
+    v
+[Set Tariffs]
+    |
+    v
+[Monitor Reservations] -> [Check-in]
+    |
+    v
+[KPIs]
+```
+
+Ops flow (imports)
+```
+[Imports]
+    |
+    v
+[Upload CSV]
+    |
+    v
+[Track Status / Results]
+```

@@ -43,7 +43,7 @@ Park-App es una aplicación móvil que conecta a conductores con una red de parq
 
 **A. Experiencia del conductor (Usuario)**
 
-1. **Registro / inicio de sesión** (email/contraseña; opcional: social login)
+1. **Registro / inicio de sesión** (email/contraseña; social login fuera del demo)
 2. **Mapa interactivo** con parqueaderos cercanos.
 3. **Ficha de parqueadero**: ubicación, tarifas, horarios, servicios, capacidad estimada, calificaciones.
 4. **Disponibilidad**: indicador de cupos disponibles (tiempo real donde aplique; si no, estimación/actualización manual del socio).
@@ -107,7 +107,7 @@ Park-App es una aplicación móvil que conecta a conductores con una red de parq
 
 - **RF-06**: Permitir seleccionar ventana de llegada y confirmar reserva.
 - **RF-07**: Generar un **código de reserva** (QR o numérico) para validación.
-- **RF-08**: Permitir cancelación según política (con penalidad opcional).
+- **RF-08**: Permitir cancelación según política (demo: sin cargo hasta 10 min antes; luego 20%).
 
 ### 7.4 Pagos
 
@@ -163,7 +163,7 @@ Park-App es una aplicación móvil que conecta a conductores con una red de parq
 **Modelo principal:** comisión por reserva confirmada.
 
 - **Quién paga:** usuario (conductor) paga la reserva/servicio; el operador entrega el servicio.
-- **Cómo:** comisión porcentual del ticket o tarifa plana por check-in (rango objetivo a definir en piloto).
+- **Cómo:** comisión **10%** sobre el ticket por reserva confirmada (demo).
 
 **Modelo complementario (futuro):** publicidad/featured listings, acuerdos B2B con centros comerciales y eventos.
 
@@ -240,6 +240,8 @@ Park-App es una aplicación móvil que conecta a conductores con una red de parq
 4. **Pagos y chargebacks:**
    - _Mitigación:_ proveedor de pago confiable, conciliación y logs.
 
+## 15. Arquitectura, stack y datos
+
 ### 15.1 Stack técnico (decisión actual)
 
 - **Lenguaje:** 100% **TypeScript** (sin JavaScript en el repo).
@@ -261,9 +263,9 @@ Park-App es una aplicación móvil que conecta a conductores con una red de parq
   - **API:** REST (JSON) + contratos tipados (p. ej., Zod para validar y derivar tipos).
 
 - **Autenticación:** JWT (access/refresh) + hashing seguro de contraseñas.
-- **Mapas/GPS:** SDK de mapas (Google Maps / Mapbox) + geolocalización.
+- **Mapas/GPS:** **OpenStreetMap + MapLibre GL JS** + geolocalización.
 - **Notificaciones:** Push (p. ej., FCM) y/o email transaccional.
-- **Pagos:** pasarela de pago integrada.
+- **Pagos:** **Stripe (modo prueba)**; moneda principal **USD**.
 
 ### 15.2 Datos (CSV grande) y rendimiento
 
@@ -296,7 +298,7 @@ Park-App es una aplicación móvil que conecta a conductores con una red de parq
 **Criterios de aceptación (rendimiento datos):**
 
 - Importar 2GB+ sin OOM (out-of-memory) y con progreso/logs.
-- Consultas típicas por rango de fechas y agregaciones (SUM/COUNT) responden en tiempos aceptables (objetivo a definir en pruebas).
+- Consultas típicas por rango de fechas y agregaciones (SUM/COUNT) responden en tiempos aceptables (objetivo demo: **p95 ≤ 2s** para rango de **30 días**).
 
 ### 15.3 Tipado fuerte (TypeScript) para el CSV de transacciones
 
@@ -307,6 +309,8 @@ Park-App es una aplicación móvil que conecta a conductores con una red de parq
 ```text
 ID,Source,Duration in Minutes,Start Time,End Time,Amount,Kiosk ID,App Zone ID,App Zone Group,Payment Method,Location Group,Last Updated
 ```
+
+**Zona horaria oficial (demo):** UTC.
 
 #### 15.3.2 Modelo raw (tal como viene del CSV)
 
@@ -365,7 +369,7 @@ export type TransactionRecord = {
 import { z } from 'zod'
 
 // Helper: parse "MM/DD/YYYY hh:mm:ss AM/PM" a Date.
-// Implementación concreta a definir (Luxon/date-fns), manteniendo 100% TS en el repo.
+// Implementación demo con date-fns (manteniendo 100% TS en el repo).
 const parseUsDateTime = (value: string): Date => {
   // Placeholder de contrato: debe lanzar error si el formato es inválido.
   // Ejemplo: 03/16/2023 08:19:05 PM
@@ -435,7 +439,7 @@ export type TransactionRecord = z.infer<typeof TransactionRecordSchema>
 ### Fase 0 — Descubrimiento (1–2 semanas)
 
 - Validación con 5–10 parqueaderos y 20–50 usuarios.
-- Definir política de cancelación/no-show.
+- Validar política de cancelación/no-show (demo: sin cargo hasta 10 min antes; luego 20%).
 
 ### Fase 1 — MVP (4–8 semanas)
 
@@ -463,5 +467,5 @@ export type TransactionRecord = z.infer<typeof TransactionRecordSchema>
 
 ## 18. Anexos
 
-- Prototipo (Figma): incluir URL vigente en el repositorio del proyecto.
-- Dominio sugerido: verificar disponibilidad (p. ej., `parkapp.app` / `parkapp.com`) y documentar evidencia.
+- Prototipo (Figma): `https://www.figma.com/file/PLACEHOLDER/park-app-demo`.
+- Dominio demo: `park-app-demo.example` (evidencia placeholder: registrar Namecheap; fecha 2026-01-13).

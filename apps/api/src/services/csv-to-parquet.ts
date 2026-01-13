@@ -4,10 +4,7 @@ import path from 'node:path'
 import { parse } from 'csv-parse'
 import { ParquetSchema, ParquetWriter } from '@dsnp/parquetjs'
 
-import {
-  TransactionRecordSchema,
-  type TransactionRecord,
-} from '@park-app/shared/csv'
+import { TransactionRecordSchema, type TransactionRecord } from '@park-app/shared/csv'
 
 type PartitionKey = string
 

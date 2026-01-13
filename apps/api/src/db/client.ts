@@ -20,9 +20,7 @@ type DbClient = {
 
 const env = getEnv()
 const databaseUrl = env.DATABASE_URL || 'sqlite:./data/parkapp.db'
-const dbPath = databaseUrl.startsWith('sqlite:')
-  ? databaseUrl.replace('sqlite:', '')
-  : databaseUrl
+const dbPath = databaseUrl.startsWith('sqlite:') ? databaseUrl.replace('sqlite:', '') : databaseUrl
 const resolvedPath = path.resolve(process.cwd(), dbPath)
 
 fs.mkdirSync(path.dirname(resolvedPath), { recursive: true })
