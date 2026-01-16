@@ -8,6 +8,7 @@ import { defineConfig } from 'vite'
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  base: '/park-app/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
