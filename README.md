@@ -33,7 +33,7 @@ npm install
 npm run import:csv
 ```
 
-> La importacion puede tardar varios minutos debido al tamanio del archivo (~1.9 GB).
+> La importacion puede tardar varios minutos debido al tamaño del archivo (~1.9 GB).
 
 ### 4. Iniciar el proyecto
 
