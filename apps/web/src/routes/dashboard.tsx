@@ -13,6 +13,7 @@ import {
   Pie,
   Cell,
   Legend,
+  Label,
 } from 'recharts'
 import { FileText, Tag, DollarSign, Clock } from 'lucide-react'
 
@@ -147,42 +148,73 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Revenue Trend (Line Chart) */}
         <div className="lg:col-span-2">
-          <ChartCard title="Tendencia de Ingresos (Últimos 30 Días)">
+          <ChartCard
+            title="Tendencia de Ingresos (Últimos 30 Días)"
+            subtitle="Evolución diaria de ingresos y número de transacciones"
+          >
             {revenueOverTime?.data ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={revenueOverTime.data}>
+              <ResponsiveContainer width="100%" height={320}>
+                <LineChart
+                  data={revenueOverTime.data}
+                  margin={{ top: 10, right: 30, left: 10, bottom: 40 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     dataKey="period"
                     stroke="#64748b"
-                    fontSize={12}
+                    fontSize={11}
                     tickLine={false}
                     axisLine={false}
-                  />
+                  >
+                    <Label
+                      value="Fecha"
+                      position="insideBottom"
+                      offset={-5}
+                      fontSize={12}
+                      fill="#64748b"
+                    />
+                  </XAxis>
                   <YAxis
                     stroke="#64748b"
-                    fontSize={12}
+                    fontSize={11}
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(value) => `$${value}`}
-                  />
+                  >
+                    <Label
+                      value="Monto ($)"
+                      position="insideLeft"
+                      angle={-90}
+                      offset={-10}
+                      fontSize={12}
+                      fill="#64748b"
+                    />
+                  </YAxis>
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#ffffff',
                       borderColor: '#e2e8f0',
                       color: '#0f172a',
+                      borderRadius: '8px',
                     }}
                     itemStyle={{ color: '#0f172a' }}
-                    formatter={(value: any) => [`$${value}`, 'Ingresos']}
-                    labelFormatter={(label) => `Fecha: ${label}`}
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    formatter={(value: any, name?: string) => {
+                      if (name === 'Ingresos') return [`$${value}`, name]
+                      if (name === 'Transacciones') return [value.toLocaleString(), name]
+                      return [value, name]
+                    }}
+                    labelFormatter={(label) => `📅 ${label}`}
                   />
-                  <Legend />
+                  <Legend verticalAlign="top" height={36} />
                   <Line
                     type="monotone"
                     dataKey="total_revenue"
                     stroke="#10b981"
                     name="Ingresos"
                     strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
                   />
                   <Line
                     type="monotone"
@@ -190,6 +222,9 @@ export function DashboardPage() {
                     stroke="#f59e0b"
                     name="Transacciones"
                     strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                    yAxisId="right"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -201,9 +236,9 @@ export function DashboardPage() {
 
         {/* Right: Payment Method (Pie Chart) - RESTORED */}
         <div className="lg:col-span-1">
-          <ChartCard title="Métodos de Pago">
+          <ChartCard title="Métodos de Pago" subtitle="Distribución de ingresos por método de pago">
             {paymentMethodData?.data ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
                   <Pie
                     data={paymentMethodData.data}
@@ -212,7 +247,17 @@ export function DashboardPage() {
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
-                    label
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    label={(entry: any) => {
+                      const total = paymentMethodData.data.reduce(
+                        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                        (acc: number, curr: any) => acc + curr.total_revenue,
+                        0
+                      )
+                      const percent = ((entry.payload.total_revenue / total) * 100).toFixed(0)
+                      return `${percent}%`
+                    }}
+                    labelLine={false}
                   >
                     {paymentMethodData.data.map((_: unknown, index: number) => (
                       <Cell
@@ -228,15 +273,17 @@ export function DashboardPage() {
                       backgroundColor: '#ffffff',
                       borderColor: '#e2e8f0',
                       color: '#0f172a',
+                      borderRadius: '8px',
                     }}
                     itemStyle={{ color: '#0f172a' }}
-                    formatter={(value: any) => [`$${value}`, 'Ingresos']}
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    formatter={(value: any, name?: string) => [`$${value}`, name || 'Ingresos']}
                   />
-                  <Legend />
+                  <Legend verticalAlign="bottom" height={36} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-400">
+              <div className="h-[320px] flex items-center justify-center text-gray-400">
                 Cargando...
               </div>
             )}
@@ -248,12 +295,15 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top Locations (Vertical Bar Chart) */}
         <div>
-          <ChartCard title="Top 10 Ubicaciones por Ingresos">
+          <ChartCard
+            title="Top 10 Ubicaciones por Ingresos"
+            subtitle="Las 10 ubicaciones con mayores ingresos generados"
+          >
             {locationData?.data ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={320}>
                 <BarChart
                   data={locationData.data}
-                  margin={{ top: 5, right: 10, left: 10, bottom: 60 }}
+                  margin={{ top: 10, right: 10, left: 10, bottom: 70 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
@@ -265,24 +315,43 @@ export function DashboardPage() {
                     angle={-45}
                     textAnchor="end"
                     interval={0}
-                    height={60}
-                  />
+                    height={70}
+                  >
+                    <Label
+                      value="Ubicación"
+                      position="insideBottom"
+                      offset={-5}
+                      fontSize={12}
+                      fill="#64748b"
+                    />
+                  </XAxis>
                   <YAxis
                     tickFormatter={(value) => `$${value / 1000}k`}
                     stroke="#64748b"
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
-                  />
+                  >
+                    <Label
+                      value="Ingresos ($)"
+                      position="insideLeft"
+                      angle={-90}
+                      offset={-10}
+                      fontSize={12}
+                      fill="#64748b"
+                    />
+                  </YAxis>
                   <Tooltip
                     cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
                     contentStyle={{
                       backgroundColor: '#ffffff',
                       borderColor: '#e2e8f0',
                       color: '#0f172a',
+                      borderRadius: '8px',
                     }}
                     itemStyle={{ color: '#0f172a' }}
-                    formatter={(value: any) => [`$${value}`, 'Ingresos']}
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    formatter={(value: any) => [`$${value.toLocaleString()}`, 'Ingresos']}
                   />
                   <Bar
                     dataKey="total_revenue"
@@ -300,21 +369,64 @@ export function DashboardPage() {
 
         {/* Hourly Distribution (Line Chart) */}
         <div>
-          <ChartCard title="Distribución Horaria">
+          <ChartCard
+            title="Distribución Horaria"
+            subtitle="Número de transacciones por hora del día"
+          >
             {hourlyData?.data ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={hourlyData.data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
+              <ResponsiveContainer width="100%" height={320}>
+                <LineChart
+                  data={hourlyData.data}
+                  margin={{ top: 10, right: 20, left: 10, bottom: 40 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="hour"
+                    stroke="#64748b"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `${value}:00`}
+                  >
+                    <Label
+                      value="Hora del día"
+                      position="insideBottom"
+                      offset={-5}
+                      fontSize={12}
+                      fill="#64748b"
+                    />
+                  </XAxis>
+                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false}>
+                    <Label
+                      value="Transacciones"
+                      position="insideLeft"
+                      angle={-90}
+                      offset={-10}
+                      fontSize={12}
+                      fill="#64748b"
+                    />
+                  </YAxis>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#e2e8f0',
+                      color: '#0f172a',
+                      borderRadius: '8px',
+                    }}
+                    itemStyle={{ color: '#0f172a' }}
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    formatter={(value: any) => [value.toLocaleString(), 'Transacciones']}
+                    labelFormatter={(label) => `🕐 ${label}:00 horas`}
+                  />
+                  <Legend verticalAlign="top" height={36} />
                   <Line
                     type="monotone"
                     dataKey="transaction_count"
                     stroke="#3b82f6"
                     name="Transacciones"
                     strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -326,20 +438,69 @@ export function DashboardPage() {
 
         {/* Duration Analysis (Bar Chart) */}
         <div>
-          <ChartCard title="Duración Estacionamiento">
+          <ChartCard
+            title="Duración Estacionamiento"
+            subtitle="Distribución de transacciones por duración del estacionamiento"
+          >
             {durationData?.data ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={durationData.data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="duration_range" hide /> {/* Hide text if too long */}
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="transaction_count" fill="#ec4899" name="Transacciones" />
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart
+                  data={durationData.data}
+                  margin={{ top: 10, right: 10, left: 10, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="duration_range"
+                    stroke="#64748b"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    angle={-45}
+                    textAnchor="end"
+                    interval={0}
+                    height={60}
+                  >
+                    <Label
+                      value="Rango de duración"
+                      position="insideBottom"
+                      offset={-5}
+                      fontSize={12}
+                      fill="#64748b"
+                    />
+                  </XAxis>
+                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false}>
+                    <Label
+                      value="Transacciones"
+                      position="insideLeft"
+                      angle={-90}
+                      offset={-10}
+                      fontSize={12}
+                      fill="#64748b"
+                    />
+                  </YAxis>
+                  <Tooltip
+                    cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#e2e8f0',
+                      color: '#0f172a',
+                      borderRadius: '8px',
+                    }}
+                    itemStyle={{ color: '#0f172a' }}
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    formatter={(value: any) => [value.toLocaleString(), 'Transacciones']}
+                  />
+                  <Legend verticalAlign="top" height={36} />
+                  <Bar
+                    dataKey="transaction_count"
+                    fill="#ec4899"
+                    name="Transacciones"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-400">
+              <div className="h-[320px] flex items-center justify-center text-gray-400">
                 Cargando...
               </div>
             )}
@@ -351,7 +512,7 @@ export function DashboardPage() {
 }
 
 function LoadingPlaceholder() {
-  return <div className="h-[200px] flex items-center justify-center text-gray-500">Loading...</div>
+  return <div className="h-[320px] flex items-center justify-center text-gray-500">Loading...</div>
 }
 
 function SummaryCard({
@@ -395,11 +556,22 @@ function SummaryCard({
   )
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string
+  subtitle?: string
+  children: React.ReactNode
+}) {
   return (
     <div className="bg-white rounded-xl p-6 h-full shadow-sm border border-slate-200">
-      <h3 className="font-semibold text-lg mb-6 text-slate-800">{title}</h3>
-      {children}
+      <div>
+        <h3 className="font-semibold text-lg text-slate-800">{title}</h3>
+        {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+      </div>
+      <div className="mt-4">{children}</div>
     </div>
   )
 }
