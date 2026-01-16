@@ -4,22 +4,25 @@ Esta carpeta debe contener el archivo `Parking_Transactions.csv`.
 
 ## Descarga
 
-Descarga el archivo CSV desde la sección de Releases del repositorio:
+1. Descarga `archive.zip` desde la seccion de Releases:
+   https://github.com/ArianaGonzabay/park-app/releases
 
-https://github.com/ArianaGonzabay/park-app/releases
+2. Descomprime el archivo en esta carpeta (`archive/`)
 
-## Instrucciones
+3. Verifica que exista: `archive/Parking_Transactions.csv`
 
-1. Descarga `Parking_Transactions.csv` desde Releases
-2. Coloca el archivo en esta carpeta (`archive/`)
-3. Ejecuta el script de importacion:
+## Importar datos
+
+Una vez que tengas el CSV, ejecuta:
 
 ```bash
 npm run import:csv
 ```
 
-4. Inicia el proyecto:
+## Iniciar el proyecto
 
 ```bash
 npm run dev
 ```
+
+El dashboard estara disponible en: http://localhost:3000
