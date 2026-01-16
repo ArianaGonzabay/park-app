@@ -14,12 +14,11 @@ import {
   Cell,
   Legend,
 } from 'recharts'
+import { FileText, Tag, DollarSign, Clock } from 'lucide-react'
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d']
 
 const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1`
-
-
 
 export function DashboardPage() {
   const {
@@ -56,18 +55,6 @@ export function DashboardPage() {
     enabled: !!summary,
   })
 
-
-
-  const { data: sourceData } = useQuery({
-    queryKey: ['analytics', 'source'],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE}/analytics/revenue-by-source`)
-      if (!res.ok) throw new Error('Failed to fetch source data')
-      return res.json()
-    },
-    enabled: !!summary,
-  })
-
   const { data: revenueOverTime } = useQuery({
     queryKey: ['analytics', 'revenue-time'],
     queryFn: async () => {
@@ -77,8 +64,6 @@ export function DashboardPage() {
     },
     enabled: !!summary,
   })
-
-
 
   const { data: hourlyData } = useQuery({
     queryKey: ['analytics', 'hourly'],
@@ -167,10 +152,26 @@ export function DashboardPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={revenueOverTime.data}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="period" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                  <XAxis
+                    dataKey="period"
+                    stroke="#64748b"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="#64748b"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `$${value}`}
+                  />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }}
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#e2e8f0',
+                      color: '#0f172a',
+                    }}
                     itemStyle={{ color: '#0f172a' }}
                     formatter={(value: any) => [`$${value}`, 'Ingresos']}
                     labelFormatter={(label) => `Fecha: ${label}`}
@@ -214,11 +215,20 @@ export function DashboardPage() {
                     label
                   >
                     {paymentMethodData.data.map((_: unknown, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="#ffffff" strokeWidth={2} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      />
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }}
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#e2e8f0',
+                      color: '#0f172a',
+                    }}
                     itemStyle={{ color: '#0f172a' }}
                     formatter={(value: any) => [`$${value}`, 'Ingresos']}
                   />
@@ -234,24 +244,52 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 3: Operational (Top Locations & Source) */}
+      {/* Row 3: Top Locations, Hourly Distribution & Duration - 3 Equal Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Top Locations (Vertical Bar Chart) - RESTORED */}
-        <div className="lg:col-span-2">
+        {/* Top Locations (Vertical Bar Chart) */}
+        <div>
           <ChartCard title="Top 10 Ubicaciones por Ingresos">
             {locationData?.data ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={locationData.data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <BarChart
+                  data={locationData.data}
+                  margin={{ top: 5, right: 10, left: 10, bottom: 60 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" tickFormatter={(value) => `$${value / 1000}k`} stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis dataKey="location_group" type="category" width={150} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <XAxis
+                    dataKey="location_group"
+                    stroke="#64748b"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    angle={-45}
+                    textAnchor="end"
+                    interval={0}
+                    height={60}
+                  />
+                  <YAxis
+                    tickFormatter={(value) => `$${value / 1000}k`}
+                    stroke="#64748b"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                  />
                   <Tooltip
                     cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
-                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }}
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#e2e8f0',
+                      color: '#0f172a',
+                    }}
                     itemStyle={{ color: '#0f172a' }}
                     formatter={(value: any) => [`$${value}`, 'Ingresos']}
                   />
-                  <Bar dataKey="total_revenue" fill="#8b5cf6" name="Ingresos" radius={[0, 4, 4, 0]} />
+                  <Bar
+                    dataKey="total_revenue"
+                    fill="#8b5cf6"
+                    name="Ingresos"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -260,36 +298,8 @@ export function DashboardPage() {
           </ChartCard>
         </div>
 
-        {/* Right: Revenue by Source (Bar Chart) - RESTORED POSITION */}
-        <div className="lg:col-span-1">
-          <ChartCard title="Ingresos por Fuente">
-            {sourceData?.data ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={sourceData.data} margin={{ left: 20, right: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="source" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis tickFormatter={(value) => `$${value / 1000}k`} width={60} stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip
-                    cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
-                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }}
-                    itemStyle={{ color: '#0f172a' }}
-                    formatter={(value: any) => [`$${value}`, 'Ingresos']}
-                  />
-                  <Legend />
-                  <Bar dataKey="total_revenue" fill="#3b82f6" name="Ingresos" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <LoadingPlaceholder />
-            )}
-          </ChartCard>
-        </div>
-      </div>
-
-      {/* Row 4: Details (Hourly & Duration) - RESTORED */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Hourly Distribution (Line Chart) */}
-        <div className="lg:col-span-2">
+        {/* Hourly Distribution (Line Chart) */}
+        <div>
           <ChartCard title="Distribución Horaria">
             {hourlyData?.data ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -314,8 +324,8 @@ export function DashboardPage() {
           </ChartCard>
         </div>
 
-        {/* Right: Duration Analysis (Bar Chart) */}
-        <div className="lg:col-span-1">
+        {/* Duration Analysis (Bar Chart) */}
+        <div>
           <ChartCard title="Duración Estacionamiento">
             {durationData?.data ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -335,7 +345,6 @@ export function DashboardPage() {
             )}
           </ChartCard>
         </div>
-
       </div>
     </div>
   )
@@ -358,35 +367,18 @@ function SummaryCard({
   icon: 'box' | 'bag' | 'dollar' | 'box-check'
   color: 'blue' | 'yellow' | 'purple' | 'pink'
 }) {
-  const icons = {
-    box: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    ),
-    bag: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-      </svg>
-    ),
-    dollar: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 01 18 0z" />
-      </svg>
-    ),
-    'box-check': (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-    )
-
+  const iconMap = {
+    box: <FileText className="w-6 h-6" />,
+    bag: <Tag className="w-6 h-6" />,
+    dollar: <DollarSign className="w-6 h-6" />,
+    'box-check': <Clock className="w-6 h-6" />,
   }
 
   const bgColors = {
     blue: 'bg-blue-500',
     yellow: 'bg-yellow-500',
     purple: 'bg-purple-500',
-    pink: 'bg-pink-500'
+    pink: 'bg-pink-500',
   }
 
   return (
@@ -397,19 +389,13 @@ function SummaryCard({
         <div className="text-xs text-slate-400">{subtitle}</div>
       </div>
       <div className={`${bgColors[color]} p-3 rounded-full text-white shadow-lg`}>
-        {icons[icon]}
+        {iconMap[icon]}
       </div>
     </div>
   )
 }
 
-function ChartCard({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl p-6 h-full shadow-sm border border-slate-200">
       <h3 className="font-semibold text-lg mb-6 text-slate-800">{title}</h3>
