@@ -325,7 +325,7 @@ export function DashboardPage() {
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart
                     data={locationData.data}
-                    margin={{ top: 10, right: 10, left: 5, bottom: 50 }}
+                    margin={{ top: 10, right: 10, left: 15, bottom: 50 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
@@ -338,7 +338,6 @@ export function DashboardPage() {
                       textAnchor="end"
                       interval={0}
                       height={50}
-                      dx={-3}
                     />
                     <YAxis
                       tickFormatter={(value) => `$${value / 1000}k`}
@@ -346,16 +345,15 @@ export function DashboardPage() {
                       fontSize={9}
                       tickLine={false}
                       axisLine={false}
-                      width={45}
+                      width={60}
                     >
                       <Label
                         value="Ingresos ($)"
                         position="insideLeft"
                         angle={-90}
-                        offset={10}
-                        fontSize={9}
+                        dy={40}
+                        fontSize={10}
                         fill="#64748b"
-                        style={{ textAnchor: 'middle' }}
                       />
                     </YAxis>
                     <Tooltip
@@ -391,7 +389,7 @@ export function DashboardPage() {
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart
                     data={hourlyData.data}
-                    margin={{ top: 10, right: 15, left: 5, bottom: 25 }}
+                    margin={{ top: 10, right: 15, left: 15, bottom: 25 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
@@ -407,16 +405,15 @@ export function DashboardPage() {
                       fontSize={9}
                       tickLine={false}
                       axisLine={false}
-                      width={50}
+                      width={60}
                     >
                       <Label
                         value="Transacciones"
                         position="insideLeft"
                         angle={-90}
-                        offset={12}
-                        fontSize={9}
+                        dy={50}
+                        fontSize={10}
                         fill="#64748b"
-                        style={{ textAnchor: 'middle' }}
                       />
                     </YAxis>
                     <Tooltip
@@ -455,7 +452,7 @@ export function DashboardPage() {
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart
                     data={durationData.data}
-                    margin={{ top: 10, right: 10, left: 5, bottom: 50 }}
+                    margin={{ top: 10, right: 10, left: 15, bottom: 50 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
@@ -468,23 +465,21 @@ export function DashboardPage() {
                       textAnchor="end"
                       interval={0}
                       height={50}
-                      dx={-3}
                     />
                     <YAxis
                       stroke="#64748b"
                       fontSize={9}
                       tickLine={false}
                       axisLine={false}
-                      width={50}
+                      width={60}
                     >
                       <Label
                         value="Transacciones"
                         position="insideLeft"
                         angle={-90}
-                        offset={12}
-                        fontSize={9}
+                        dy={50}
+                        fontSize={10}
                         fill="#64748b"
-                        style={{ textAnchor: 'middle' }}
                       />
                     </YAxis>
                     <Tooltip
