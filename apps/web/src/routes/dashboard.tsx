@@ -15,7 +15,7 @@ import {
   Legend,
   Label,
 } from 'recharts'
-import { FileText, Tag, DollarSign, Clock, BarChart3 } from 'lucide-react'
+import { FileText, Tag, DollarSign, Clock } from 'lucide-react'
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d']
 
@@ -120,34 +120,8 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-slate-50 to-slate-100">
       <div className="max-w-[1600px] mx-auto px-4 py-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
-              <BarChart3 className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">Panel de Control</h1>
-              <p className="text-slate-500 text-sm">
-                Resumen de operaciones y estadísticas del estacionamiento
-              </p>
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-2 text-sm text-slate-500">
-            <Clock className="w-4 h-4" />
-            <span>
-              Última actualización:{' '}
-              {new Date().toLocaleDateString('es-ES', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </span>
-          </div>
-        </div>
-
         {/* Row 1: Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <SummaryCard
