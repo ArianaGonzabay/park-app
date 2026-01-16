@@ -322,37 +322,45 @@ export function DashboardPage() {
           <div>
             <ChartCard title="Top 10 Ubicaciones" subtitle="Ubicaciones con mayores ingresos">
               {locationData?.data ? (
-                <ResponsiveContainer width="100%" height={350}>
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart
                     data={locationData.data}
-                    margin={{ top: 20, right: 20, left: 20, bottom: 80 }}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 60 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
                       dataKey="location_group"
                       stroke="#64748b"
-                      fontSize={9}
+                      fontSize={8}
                       tickLine={false}
                       axisLine={false}
                       angle={-45}
                       textAnchor="end"
                       interval={0}
-                      height={80}
-                    />
+                      height={60}
+                    >
+                      <Label
+                        value="Ubicación"
+                        position="insideBottom"
+                        offset={-5}
+                        fontSize={10}
+                        fill="#64748b"
+                      />
+                    </XAxis>
                     <YAxis
                       tickFormatter={(value) => `$${value / 1000}k`}
                       stroke="#64748b"
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
-                      width={60}
+                      width={55}
                     >
                       <Label
                         value="Ingresos ($)"
                         position="insideLeft"
                         angle={-90}
-                        offset={0}
-                        fontSize={11}
+                        offset={5}
+                        fontSize={10}
                         fill="#64748b"
                         style={{ textAnchor: 'middle' }}
                       />
@@ -387,10 +395,10 @@ export function DashboardPage() {
           <div>
             <ChartCard title="Distribución Horaria" subtitle="Transacciones por hora del día">
               {hourlyData?.data ? (
-                <ResponsiveContainer width="100%" height={350}>
+                <ResponsiveContainer width="100%" height={300}>
                   <LineChart
                     data={hourlyData.data}
-                    margin={{ top: 20, right: 20, left: 20, bottom: 40 }}
+                    margin={{ top: 10, right: 15, left: 10, bottom: 35 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
@@ -404,8 +412,8 @@ export function DashboardPage() {
                       <Label
                         value="Hora del día"
                         position="insideBottom"
-                        offset={-25}
-                        fontSize={11}
+                        offset={-20}
+                        fontSize={10}
                         fill="#64748b"
                       />
                     </XAxis>
@@ -414,14 +422,14 @@ export function DashboardPage() {
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
-                      width={70}
+                      width={60}
                     >
                       <Label
                         value="Transacciones"
                         position="insideLeft"
                         angle={-90}
                         offset={10}
-                        fontSize={11}
+                        fontSize={10}
                         fill="#64748b"
                         style={{ textAnchor: 'middle' }}
                       />
@@ -459,28 +467,28 @@ export function DashboardPage() {
           <div>
             <ChartCard title="Duración Estacionamiento" subtitle="Transacciones por duración">
               {durationData?.data ? (
-                <ResponsiveContainer width="100%" height={350}>
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart
                     data={durationData.data}
-                    margin={{ top: 20, right: 20, left: 20, bottom: 80 }}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 60 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
                       dataKey="duration_range"
                       stroke="#64748b"
-                      fontSize={9}
+                      fontSize={8}
                       tickLine={false}
                       axisLine={false}
                       angle={-45}
                       textAnchor="end"
                       interval={0}
-                      height={80}
+                      height={60}
                     >
                       <Label
                         value="Duración"
                         position="insideBottom"
-                        offset={-10}
-                        fontSize={11}
+                        offset={-5}
+                        fontSize={10}
                         fill="#64748b"
                       />
                     </XAxis>
@@ -489,14 +497,14 @@ export function DashboardPage() {
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
-                      width={70}
+                      width={55}
                     >
                       <Label
                         value="Transacciones"
                         position="insideLeft"
                         angle={-90}
-                        offset={10}
-                        fontSize={11}
+                        offset={5}
+                        fontSize={10}
                         fill="#64748b"
                         style={{ textAnchor: 'middle' }}
                       />
@@ -522,7 +530,7 @@ export function DashboardPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[350px] flex items-center justify-center text-gray-400">
+                <div className="h-[300px] flex items-center justify-center text-gray-400">
                   Cargando...
                 </div>
               )}
@@ -536,7 +544,7 @@ export function DashboardPage() {
 
 function LoadingPlaceholder() {
   return (
-    <div className="h-[350px] flex flex-col items-center justify-center text-slate-400">
+    <div className="h-[300px] flex flex-col items-center justify-center text-slate-400">
       <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin mb-3"></div>
       <span className="text-sm">Cargando datos...</span>
     </div>
