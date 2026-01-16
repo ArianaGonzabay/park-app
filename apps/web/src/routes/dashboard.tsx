@@ -325,7 +325,7 @@ export function DashboardPage() {
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart
                     data={locationData.data}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 60 }}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 70 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
@@ -337,12 +337,14 @@ export function DashboardPage() {
                       angle={-45}
                       textAnchor="end"
                       interval={0}
-                      height={60}
+                      height={55}
+                      dx={-5}
+                      dy={2}
                     >
                       <Label
                         value="Ubicación"
-                        position="insideBottom"
-                        offset={-5}
+                        position="bottom"
+                        offset={5}
                         fontSize={10}
                         fill="#64748b"
                       />
@@ -470,7 +472,7 @@ export function DashboardPage() {
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart
                     data={durationData.data}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 60 }}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 70 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
@@ -482,12 +484,14 @@ export function DashboardPage() {
                       angle={-45}
                       textAnchor="end"
                       interval={0}
-                      height={60}
+                      height={55}
+                      dx={-5}
+                      dy={2}
                     >
                       <Label
                         value="Duración"
-                        position="insideBottom"
-                        offset={-5}
+                        position="bottom"
+                        offset={5}
                         fontSize={10}
                         fill="#64748b"
                       />
