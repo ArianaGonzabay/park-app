@@ -153,10 +153,10 @@ export function DashboardPage() {
             subtitle="Evolución diaria de ingresos y número de transacciones"
           >
             {revenueOverTime?.data ? (
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={380}>
                 <LineChart
                   data={revenueOverTime.data}
-                  margin={{ top: 10, right: 30, left: 10, bottom: 40 }}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
@@ -238,15 +238,15 @@ export function DashboardPage() {
         <div className="lg:col-span-1">
           <ChartCard title="Métodos de Pago" subtitle="Distribución de ingresos por método de pago">
             {paymentMethodData?.data ? (
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={380}>
                 <PieChart>
                   <Pie
                     data={paymentMethodData.data}
                     dataKey="total_revenue"
                     nameKey="payment_method"
                     cx="50%"
-                    cy="50%"
-                    outerRadius={80}
+                    cy="40%"
+                    outerRadius={70}
                     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                     label={(entry: any) => {
                       const total = paymentMethodData.data.reduce(
@@ -279,11 +279,16 @@ export function DashboardPage() {
                     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                     formatter={(value: any, name?: string) => [`$${value}`, name || 'Ingresos']}
                   />
-                  <Legend verticalAlign="bottom" height={36} />
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
+                    wrapperStyle={{ paddingTop: '20px' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[320px] flex items-center justify-center text-gray-400">
+              <div className="h-[380px] flex items-center justify-center text-gray-400">
                 Cargando...
               </div>
             )}
@@ -295,52 +300,33 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top Locations (Vertical Bar Chart) */}
         <div>
-          <ChartCard
-            title="Top 10 Ubicaciones por Ingresos"
-            subtitle="Las 10 ubicaciones con mayores ingresos generados"
-          >
+          <ChartCard title="Top 10 Ubicaciones" subtitle="Ubicaciones con mayores ingresos">
             {locationData?.data ? (
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={380}>
                 <BarChart
                   data={locationData.data}
-                  margin={{ top: 10, right: 10, left: 10, bottom: 70 }}
+                  margin={{ top: 20, right: 15, left: 15, bottom: 100 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     dataKey="location_group"
                     stroke="#64748b"
-                    fontSize={10}
+                    fontSize={9}
                     tickLine={false}
                     axisLine={false}
-                    angle={-45}
+                    angle={-55}
                     textAnchor="end"
                     interval={0}
-                    height={70}
-                  >
-                    <Label
-                      value="Ubicación"
-                      position="insideBottom"
-                      offset={-5}
-                      fontSize={12}
-                      fill="#64748b"
-                    />
-                  </XAxis>
+                    height={100}
+                  />
                   <YAxis
                     tickFormatter={(value) => `$${value / 1000}k`}
                     stroke="#64748b"
-                    fontSize={11}
+                    fontSize={10}
                     tickLine={false}
                     axisLine={false}
-                  >
-                    <Label
-                      value="Ingresos ($)"
-                      position="insideLeft"
-                      angle={-90}
-                      offset={-10}
-                      fontSize={12}
-                      fill="#64748b"
-                    />
-                  </YAxis>
+                    width={45}
+                  />
                   <Tooltip
                     cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
                     contentStyle={{
@@ -369,43 +355,29 @@ export function DashboardPage() {
 
         {/* Hourly Distribution (Line Chart) */}
         <div>
-          <ChartCard
-            title="Distribución Horaria"
-            subtitle="Número de transacciones por hora del día"
-          >
+          <ChartCard title="Distribución Horaria" subtitle="Transacciones por hora del día">
             {hourlyData?.data ? (
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={380}>
                 <LineChart
                   data={hourlyData.data}
-                  margin={{ top: 10, right: 20, left: 10, bottom: 40 }}
+                  margin={{ top: 20, right: 20, left: 15, bottom: 50 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     dataKey="hour"
                     stroke="#64748b"
-                    fontSize={11}
+                    fontSize={10}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) => `${value}:00`}
-                  >
-                    <Label
-                      value="Hora del día"
-                      position="insideBottom"
-                      offset={-5}
-                      fontSize={12}
-                      fill="#64748b"
-                    />
-                  </XAxis>
-                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false}>
-                    <Label
-                      value="Transacciones"
-                      position="insideLeft"
-                      angle={-90}
-                      offset={-10}
-                      fontSize={12}
-                      fill="#64748b"
-                    />
-                  </YAxis>
+                    tickFormatter={(value) => `${value}h`}
+                  />
+                  <YAxis
+                    stroke="#64748b"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    width={40}
+                  />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#ffffff',
@@ -416,17 +388,21 @@ export function DashboardPage() {
                     itemStyle={{ color: '#0f172a' }}
                     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                     formatter={(value: any) => [value.toLocaleString(), 'Transacciones']}
-                    labelFormatter={(label) => `🕐 ${label}:00 horas`}
+                    labelFormatter={(label) => `${label}:00 horas`}
                   />
-                  <Legend verticalAlign="top" height={36} />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    wrapperStyle={{ paddingTop: '10px' }}
+                  />
                   <Line
                     type="monotone"
                     dataKey="transaction_count"
                     stroke="#3b82f6"
                     name="Transacciones"
                     strokeWidth={2}
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 5 }}
+                    dot={{ r: 2 }}
+                    activeDot={{ r: 4 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -438,46 +414,32 @@ export function DashboardPage() {
 
         {/* Duration Analysis (Bar Chart) */}
         <div>
-          <ChartCard
-            title="Duración Estacionamiento"
-            subtitle="Distribución de transacciones por duración del estacionamiento"
-          >
+          <ChartCard title="Duración Estacionamiento" subtitle="Transacciones por duración">
             {durationData?.data ? (
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={380}>
                 <BarChart
                   data={durationData.data}
-                  margin={{ top: 10, right: 10, left: 10, bottom: 60 }}
+                  margin={{ top: 20, right: 15, left: 15, bottom: 100 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis
                     dataKey="duration_range"
                     stroke="#64748b"
+                    fontSize={9}
+                    tickLine={false}
+                    axisLine={false}
+                    angle={-55}
+                    textAnchor="end"
+                    interval={0}
+                    height={100}
+                  />
+                  <YAxis
+                    stroke="#64748b"
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
-                    angle={-45}
-                    textAnchor="end"
-                    interval={0}
-                    height={60}
-                  >
-                    <Label
-                      value="Rango de duración"
-                      position="insideBottom"
-                      offset={-5}
-                      fontSize={12}
-                      fill="#64748b"
-                    />
-                  </XAxis>
-                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false}>
-                    <Label
-                      value="Transacciones"
-                      position="insideLeft"
-                      angle={-90}
-                      offset={-10}
-                      fontSize={12}
-                      fill="#64748b"
-                    />
-                  </YAxis>
+                    width={40}
+                  />
                   <Tooltip
                     cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
                     contentStyle={{
@@ -490,7 +452,6 @@ export function DashboardPage() {
                     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                     formatter={(value: any) => [value.toLocaleString(), 'Transacciones']}
                   />
-                  <Legend verticalAlign="top" height={36} />
                   <Bar
                     dataKey="transaction_count"
                     fill="#ec4899"
@@ -500,7 +461,7 @@ export function DashboardPage() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[320px] flex items-center justify-center text-gray-400">
+              <div className="h-[380px] flex items-center justify-center text-gray-400">
                 Cargando...
               </div>
             )}
@@ -512,7 +473,7 @@ export function DashboardPage() {
 }
 
 function LoadingPlaceholder() {
-  return <div className="h-[320px] flex items-center justify-center text-gray-500">Loading...</div>
+  return <div className="h-[380px] flex items-center justify-center text-gray-500">Loading...</div>
 }
 
 function SummaryCard({
