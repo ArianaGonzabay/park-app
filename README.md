@@ -1,41 +1,52 @@
 # Park-App
 
-Dashboard de operaciones de estacionamiento.
+Dashboard de analisis de operaciones de estacionamiento. Visualiza metricas de transacciones, ingresos, ubicaciones y patrones de uso.
 
-## Quick Start
+## Requisitos
+
+- Node.js 20+
+- npm 9+
+
+## Instalacion
+
+### 1. Clonar el repositorio
 
 ```bash
-# 1. Clonar el repositorio
 git clone https://github.com/ArianaGonzabay/park-app.git
 cd park-app
-
-# 2. Descargar archive.zip de Releases y descomprimir en la carpeta archive/
-# https://github.com/ArianaGonzabay/park-app/releases
-
-# 3. Instalar dependencias
-npm install
-
-# 4. Importar datos del CSV a la base de datos
-npm run import:csv
-
-# 5. Iniciar el proyecto
-npm run dev
 ```
 
-El dashboard estara disponible en: http://localhost:3000
+### 2. Descargar los datos
 
-## Estructura del proyecto
+Descarga `archive.zip` desde [Releases](https://github.com/ArianaGonzabay/park-app/releases) y descomprimelo en la carpeta `archive/` del proyecto.
 
 ```
 park-app/
-├── apps/
-│   ├── web/       # Frontend React
-│   └── api/       # Backend API
-├── archive/       # CSV de datos (descargar de Releases)
-└── packages/      # Configuraciones compartidas
+└── archive/
+    └── Parking_Transactions.csv
 ```
 
-## Stack tecnologico
+### 3. Instalar dependencias e importar datos
 
-- **Frontend**: React + Vite + TailwindCSS + Recharts
-- **Backend**: Hono + Node.js + SQLite
+```bash
+npm install
+npm run import:csv
+```
+
+> La importacion puede tardar varios minutos debido al tamanio del archivo (~1.9 GB).
+
+### 4. Iniciar el proyecto
+
+```bash
+npm run dev
+```
+
+Abre http://localhost:3000 en tu navegador.
+
+## Tecnologias
+
+| Capa     | Tecnologias                        |
+| -------- | ---------------------------------- |
+| Frontend | React, Vite, TailwindCSS, Recharts |
+| Backend  | Hono, Node.js, SQLite              |
+| Monorepo | Turborepo, npm workspaces          |
