@@ -21,6 +21,15 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'
 
 const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1`
 
+// Traducciones para métodos de pago
+const PAYMENT_METHOD_TRANSLATIONS: Record<string, string> = {
+  card: 'Tarjeta',
+  coins: 'Efectivo',
+  cash: 'Efectivo',
+  credit: 'Crédito',
+  debit: 'Débito',
+}
+
 export function DashboardPage() {
   const {
     data: summary,
@@ -204,7 +213,7 @@ export function DashboardPage() {
                       if (name === 'Transacciones') return [value.toLocaleString(), name]
                       return [value, name]
                     }}
-                    labelFormatter={(label) => `📅 ${label}`}
+                    labelFormatter={(label) => `Fecha: ${label}`}
                   />
                   <Legend verticalAlign="top" height={36} />
                   <Line
@@ -241,7 +250,14 @@ export function DashboardPage() {
               <ResponsiveContainer width="100%" height={380}>
                 <PieChart>
                   <Pie
-                    data={paymentMethodData.data}
+                    data={paymentMethodData.data.map(
+                      (item: { payment_method: string; total_revenue: number }) => ({
+                        ...item,
+                        payment_method:
+                          PAYMENT_METHOD_TRANSLATIONS[item.payment_method.toLowerCase()] ||
+                          item.payment_method,
+                      })
+                    )}
                     dataKey="total_revenue"
                     nameKey="payment_method"
                     cx="50%"
