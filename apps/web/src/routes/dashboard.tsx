@@ -324,42 +324,49 @@ export function DashboardPage() {
               {locationData?.data ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart
-                    data={locationData.data}
-                    margin={{ top: 10, right: 10, left: 15, bottom: 70 }}
+                    data={[...locationData.data].sort((a, b) =>
+                      a.location_group.localeCompare(b.location_group)
+                    )}
+                    layout="vertical"
+                    margin={{ top: 10, right: 20, left: 10, bottom: 20 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#e2e8f0"
+                      horizontal={true}
+                      vertical={false}
+                    />
                     <XAxis
-                      dataKey="location_group"
-                      stroke="#64748b"
-                      fontSize={8}
-                      tickLine={false}
-                      axisLine={false}
-                      angle={-45}
-                      textAnchor="end"
-                      interval={0}
-                      height={55}
-                    >
-                      <Label
-                        value="Ubicación"
-                        position="insideBottom"
-                        offset={-60}
-                        fontSize={10}
-                        fill="#64748b"
-                      />
-                    </XAxis>
-                    <YAxis
+                      type="number"
                       tickFormatter={(value) => `$${value / 1000}k`}
                       stroke="#64748b"
                       fontSize={9}
                       tickLine={false}
                       axisLine={false}
-                      width={60}
                     >
                       <Label
                         value="Ingresos ($)"
+                        position="bottom"
+                        offset={0}
+                        fontSize={10}
+                        fill="#64748b"
+                      />
+                    </XAxis>
+                    <YAxis
+                      type="category"
+                      dataKey="location_group"
+                      stroke="#64748b"
+                      fontSize={9}
+                      tickLine={false}
+                      axisLine={false}
+                      width={115}
+                    >
+                      <Label
+                        value="Ubicación"
                         position="insideLeft"
                         angle={-90}
-                        dy={40}
+                        dx={-10}
+                        dy={35}
                         fontSize={10}
                         fill="#64748b"
                       />
@@ -380,7 +387,7 @@ export function DashboardPage() {
                       dataKey="total_revenue"
                       fill="#8b5cf6"
                       name="Ingresos"
-                      radius={[4, 4, 0, 0]}
+                      radius={[0, 4, 4, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>
