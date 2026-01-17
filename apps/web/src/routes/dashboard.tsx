@@ -265,8 +265,8 @@ export function DashboardPage() {
                       dataKey="total_revenue"
                       nameKey="payment_method"
                       cx="50%"
-                      cy="40%"
-                      outerRadius={70}
+                      cy="45%"
+                      outerRadius={100}
                       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                       label={(entry: any) => {
                         const total = paymentMethodData.data.reduce(
