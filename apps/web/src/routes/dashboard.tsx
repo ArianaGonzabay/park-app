@@ -174,7 +174,7 @@ export function DashboardPage() {
                       stroke="#64748b"
                       fontSize={11}
                       tickLine={false}
-                      axisLine={false}
+                      axisLine={{ stroke: '#94a3b8' }}
                     >
                       <Label
                         value="Fecha"
@@ -188,7 +188,7 @@ export function DashboardPage() {
                       stroke="#64748b"
                       fontSize={11}
                       tickLine={false}
-                      axisLine={false}
+                      axisLine={{ stroke: '#94a3b8' }}
                       tickFormatter={(value) => `$${value}`}
                     >
                       <Label
@@ -342,7 +342,7 @@ export function DashboardPage() {
                       stroke="#64748b"
                       fontSize={9}
                       tickLine={false}
-                      axisLine={false}
+                      axisLine={{ stroke: '#94a3b8' }}
                     >
                       <Label
                         value="Ingresos ($)"
@@ -358,7 +358,7 @@ export function DashboardPage() {
                       stroke="#64748b"
                       fontSize={9}
                       tickLine={false}
-                      axisLine={false}
+                      axisLine={{ stroke: '#94a3b8' }}
                       width={115}
                     >
                       <Label
@@ -412,7 +412,7 @@ export function DashboardPage() {
                       stroke="#64748b"
                       fontSize={9}
                       tickLine={false}
-                      axisLine={false}
+                      axisLine={{ stroke: '#94a3b8' }}
                       tickFormatter={(value) => `${value}h`}
                     >
                       <Label
@@ -427,7 +427,7 @@ export function DashboardPage() {
                       stroke="#64748b"
                       fontSize={9}
                       tickLine={false}
-                      axisLine={false}
+                      axisLine={{ stroke: '#94a3b8' }}
                       width={60}
                     >
                       <Label
@@ -483,7 +483,7 @@ export function DashboardPage() {
                       stroke="#64748b"
                       fontSize={8}
                       tickLine={false}
-                      axisLine={false}
+                      axisLine={{ stroke: '#94a3b8' }}
                       angle={-45}
                       textAnchor="end"
                       interval={0}
@@ -501,7 +501,7 @@ export function DashboardPage() {
                       stroke="#64748b"
                       fontSize={9}
                       tickLine={false}
-                      axisLine={false}
+                      axisLine={{ stroke: '#94a3b8' }}
                       width={60}
                     >
                       <Label
